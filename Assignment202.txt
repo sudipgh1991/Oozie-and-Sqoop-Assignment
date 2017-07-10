@@ -1,0 +1,36 @@
+
+--Creating database and table in MYSQL
+
+CREATE DATABASE ExportSqoop;
+
+CREATE TABLE customer 
+(
+cust_id int(5),
+cust_name varchar(10),
+cust_age int(10) 
+);
+
+
+--Copy the file from Local to HDFS
+
+hadoop dfs -copyFromLocal /Desktop/SudipWorkspace/SqoopAssignment/Customer.csv /tmp/sqoop
+
+
+--Export the file from HDFS to MYSQL table
+
+sqoop export --connect jdbc:mysql://localhost/ExportSqoop --username 'root' -P --table 'customer' --export-dir '/tmp/sqoop' 
+--update-mode allowinsert --input-fields-terminated-by ',' -m 1 --columns cust_id,cust_name,cust_age
+
+
+--Hive Import Incremental
+
+sqoop import --connect jdbc:mysql://localhost/ExportSqoop 
+--username 'root' -P --table 'customer' 
+--target-dir '/tmp/sqoop' 
+--input-fields-terminated-by ','
+--hive-import 
+--hive-overwrite 
+--incremental append 
+--hive-table hiveDatabase.CustomerTable
+--check-column cust_id
+-m 1;
